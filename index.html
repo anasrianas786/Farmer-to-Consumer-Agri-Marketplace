@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>KisanConnect - Farmer to Consumer Agri Marketplace</title>
+  <!-- Google Fonts + Font Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Tailwind CSS via CDN (for rapid styling, but we also add custom overrides) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* custom overrides / enhancements */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #fafef7;
+    }
+    .card-hover {
+      transition: all 0.2s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.1);
+    }
+    .organic-badge {
+      background-color: #e6f7e6;
+      color: #2b6e2f;
+    }
+    .conventional-badge {
+      background-color: #fef3c7;
+      color: #b45309;
+    }
+    .star-rating i {
+      color: #fbbf24;
+    }
+    .sidebar-dashboard {
+      background: linear-gradient(135deg, #0f3b1f 0%, #1c5a2d 100%);
+    }
+    button:focus, a:focus {
+      outline: 2px solid #2c7a4b;
+      outline-offset: 2px;
+    }
+    .transition-smooth {
+      transition: all 0.2s ease;
+    }
+    /* custom scroll */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #e4e7e2;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2c7a4b;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- Main App Container: role based dashboards (simulated demo, fully functional frontend) -->
+  <div id="app" class="min-h-screen flex flex-col">
+    <!-- Navigation / Header (dynamic based on role) -->
+    <header class="bg-white shadow-sm border-b border-green-100 sticky top-0 z-20">
+      <div class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center flex-wrap gap-3">
+        <div class="flex items-center space-x-2">
+          <i class="fas fa-leaf text-3xl text-green-700"></i>
+          <span class="font-bold text-2xl text-green-800">Kisan<span class="text-amber-700">Connect</span></span>
+          <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full ml-2">Direct from Farm</span>
+        </div>
+        <div class="flex items-center space-x-3">
+          <div class="relative inline-block text-left" id="roleSelector">
+            <button id="roleDropdownBtn" class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full text-sm font-medium transition">
+              <i class="fas fa-user-circle"></i> 
+              <span id="currentRoleLabel">Consumer Demo</span>
+              <i class="fas fa-chevron-down text-xs"></i>
+            </button>
+            <div id="roleMenu" class="hidden absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-30">
+              <div class="py-1">
+                <a href="#" data-role="consumer" class="role-option block px-4 py-2 text-sm text-gray-700 hover:bg-green-50">👩‍🌾 Consumer</a>
+                <a href="#" data-role="farmer" class="role-option block px-4 py-2 text-sm text-gray-700 hover:bg-green-50">🧑‍🌾 Farmer Dashboard</a>
+                <a href="#" data-role="admin" class="role-option block px-4 py-2 text-sm text-gray-700 hover:bg-green-50">⚙️ Admin Panel</a>
+              </div>
+            </div>
+          </div>
+          <div class="text-sm text-gray-600 hidden sm:block">| <i class="fas fa-store"></i> Local Harvest</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dynamic Area: Renders Consumer, Farmer, Admin Views -->
+    <main class="flex-1 container mx-auto px-4 sm:px-6 py-6 md:py-8">
+      <div id="dynamicView">
+        <!-- content injected via JS -->
+        <div class="flex justify-center items-center py-20">
+          <i class="fas fa-spinner fa-spin text-3xl text-green-700"></i>
+          <span class="ml-3">Loading marketplace...</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-green-100 mt-8 py-6 text-center text-gray-500 text-sm">
+      <div class="container mx-auto">
+        <p>🌱 Fresh from local farms — transparent pricing, sustainable future. © KisanConnect 2026</p>
+        <p class="mt-1 text-xs">Supporting small farmers & direct-to-consumer agri revolution</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // ---------- MOCK DATA (Farmer, Products, Orders, etc) ----------
+    // sample farmers (verified)
+    const farmersDB = [
+      { id: 1, name: "Rajesh Yadav", farmLocation: "Mysore Road, Bangalore", cropTypes: "Tomato, Brinjal, Spinach", farmingMethod: "organic", verified: true, avatar: "🌾", rating: 4.8 },
+      { id: 2, name: "Green Earth Farms", farmLocation: "Palakkad, Kerala", cropTypes: "Coconut, Banana, Tapioca", farmingMethod: "organic", verified: true, avatar: "🥥", rating: 4.9 },
+      { id: 3, name: "Anita Patil", farmLocation: "Pune Outskirts, Maharashtra", cropTypes: "Onion, Coriander, Cauliflower", farmingMethod: "conventional", verified: true, avatar: "🧅", rating: 4.5 },
+      { id: 4, name: "Sunder Organic Garden", farmLocation: "Nainital, Uttarakhand", cropTypes: "Apples, Peas, Capsicum", farmingMethod: "organic", verified: true, avatar: "🍎", rating: 4.7 }
+    ];
+
+    // products (linked to farmer)
+    let productsDB = [
+      { id: 101, farmerId: 1, name: "Organic Tomatoes", category: "Vegetables", pricePerUnit: 40, unit: "kg", availability: true, harvestDate: "2026-06-12", image: "🍅", organic: true },
+      { id: 102, farmerId: 1, name: "Fresh Spinach", category: "Leafy Greens", pricePerUnit: 25, unit: "bunch", availability: true, harvestDate: "2026-06-14", image: "🥬", organic: true },
+      { id: 103, farmerId: 2, name: "Raw Coconut", category: "Fruits", pricePerUnit: 35, unit: "piece", availability: true, harvestDate: "2026-06-10", image: "🥥", organic: true },
+      { id: 104, farmerId: 2, name: "Organic Banana (dozen)", category: "Fruits", pricePerUnit: 55, unit: "dozen", availability: true, harvestDate: "2026-06-13", image: "🍌", organic: true },
+      { id: 105, farmerId: 3, name: "Fresh Onions", category: "Vegetables", pricePerUnit: 30, unit: "kg", availability: true, harvestDate: "2026-06-11", image: "🧅", organic: false },
+      { id: 106, farmerId: 3, name: "Coriander Bunch", category: "Herbs", pricePerUnit: 12, unit: "bunch", availability: true, harvestDate: "2026-06-15", image: "🌿", organic: false },
+      { id: 107, farmerId: 4, name: "Organic Apples", category: "Fruits", pricePerUnit: 160, unit: "kg", availability: true, harvestDate: "2026-06-09", image: "🍎", organic: true },
+      { id: 108, farmerId: 4, name: "Green Capsicum", category: "Vegetables", pricePerUnit: 48, unit: "kg", availability: true, harvestDate: "2026-06-12", image: "🫑", organic: true }
+    ];
+
+    // orders array (consumer orders)
+    let orders = [
+      { id: 1001, consumerName: "Demo User", productId: 101, quantity: 2, status: "Delivered", orderDate: "2026-06-01", farmerId: 1, totalPrice: 80 },
+      { id: 1002, consumerName: "Demo User", productId: 104, quantity: 1, status: "Confirmed", orderDate: "2026-06-14", farmerId: 2, totalPrice: 55 }
+    ];
+
+    // platform analytics / admin counters
+    let platformStats = {
+      totalFarmers: farmersDB.length,
+      activeConsumers: 128,
+      orderFulfillmentRate: 94,
+      avgFarmerIncomeIncrease: 32, // percent
+      repeatCustomerRate: 68,
+      totalOrdersCompleted: 245
+    };
+
+    // global state: current role (consumer / farmer / admin)
+    let currentRole = "consumer";   // consumer, farmer, admin
+    let loggedInFarmerId = 1;       // for farmer dashboard demo (Rajesh Yadav)
+    let cart = [];                  // consumer shopping cart (frontend demo)
+
+    // Helper to get farmer details by id
+    function getFarmerById(id) {
+      return farmersDB.find(f => f.id === id);
+    }
+
+    // Render dynamic view based on role
+    function renderView() {
+      const container = document.getElementById("dynamicView");
+      if (!container) return;
+      if (currentRole === "consumer") {
+        container.innerHTML = renderConsumerDashboard();
+        attachConsumerEvents();
+      } else if (currentRole === "farmer") {
+        container.innerHTML = renderFarmerDashboard(loggedInFarmerId);
+        attachFarmerEvents();
+      } else if (currentRole === "admin") {
+        container.innerHTML = renderAdminDashboard();
+        attachAdminEvents();
+      }
+    }
+
+    // ---------- CONSUMER VIEW (browse products, farmers, place order) ----------
+    function renderConsumerDashboard() {
+      // group categories for filter, also location/farmer filter
+      let farmersOptions = farmersDB.map(f => `<option value="${f.id}">${f.name} (${f.farmLocation})</option>`).join('');
+      let productCards = productsDB.filter(p => p.availability).map(prod => {
+        const farmer = getFarmerById(prod.farmerId);
+        return `
+          <div class="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden card-hover transition-smooth p-4">
+            <div class="flex items-start justify-between">
+              <div class="text-4xl">${prod.image}</div>
+              <span class="${prod.organic ? 'organic-badge' : 'conventional-badge'} text-xs font-semibold px-2 py-1 rounded-full">${prod.organic ? '🌱 Organic' : '🌾 Conventional'}</span>
+            </div>
+            <h3 class="font-bold text-lg mt-2">${prod.name}</h3>
+            <div class="text-sm text-gray-500"><i class="fas fa-tractor"></i> ${farmer?.name || 'Farmer'}</div>
+            <div class="text-sm text-gray-500"><i class="fas fa-map-marker-alt"></i> ${farmer?.farmLocation || 'Local'}</div>
+            <div class="mt-2 flex items-baseline gap-2"><span class="text-2xl font-bold text-green-700">₹${prod.pricePerUnit}</span><span class="text-gray-500">/${prod.unit}</span></div>
+            <div class="text-xs text-gray-400">Harvest: ${new Date(prod.harvestDate).toLocaleDateString()}</div>
+            <div class="mt-3 flex items-center justify-between">
+              <button data-product='${JSON.stringify(prod)}' class="add-to-cart-btn bg-green-700 hover:bg-green-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition"><i class="fas fa-cart-plus mr-1"></i> Add to Cart</button>
+              <span class="text-xs text-green-600"><i class="far fa-clock"></i> fresh stock</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // cart summary display
+      let cartItemsHtml = cart.length === 0 ? '<div class="text-gray-400 text-center py-4">Cart empty. Add fresh produce!</div>' : '';
+      let cartTotal = 0;
+      cart.forEach((item, idx) => {
+        cartTotal += item.pricePerUnit * item.quantity;
+        cartItemsHtml += `
+          <div class="flex justify-between items-center border-b pb-2 mb-2">
+            <div><span class="font-medium">${item.name}</span> x ${item.quantity} (${item.unit})</div>
+            <div>₹${item.pricePerUnit * item.quantity}</div>
+            <button data-cartidx="${idx}" class="remove-cart-item text-red-500 text-sm"><i class="fas fa-trash-alt"></i></button>
+          </div>
+        `;
+      });
+      
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- Filters Sidebar (simplified) -->
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-green-100 h-fit">
+            <h3 class="font-bold text-lg mb-3"><i class="fas fa-filter"></i> Filter</h3>
+            <div class="mb-4">
+              <label class="block text-sm font-medium">Category</label>
+              <select id="filterCategory" class="w-full p-2 border rounded-lg">
+                <option value="all">All</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Leafy Greens">Leafy Greens</option>
+                <option value="Herbs">Herbs</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium">Farming Method</label>
+              <select id="filterFarming" class="w-full p-2 border rounded-lg">
+                <option value="all">All</option>
+                <option value="organic">Organic</option>
+                <option value="conventional">Conventional</option>
+              </select>
+            </div>
+            <button id="applyFilterBtn" class="bg-green-100 text-green-800 w-full py-2 rounded-lg font-medium">Apply Filters</button>
+          </div>
+          
+          <!-- Products & Cart -->
+          <div class="lg:col-span-3">
+            <div class="flex justify-between items-center flex-wrap mb-5">
+              <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-seedling text-green-600"></i> Fresh Harvest</h2>
+              <div class="relative">
+                <button id="viewCartBtn" class="bg-amber-50 text-amber-800 px-4 py-2 rounded-full shadow-sm"><i class="fas fa-shopping-cart"></i> Cart (<span id="cartCount">${cart.length}</span>)</button>
+              </div>
+            </div>
+            <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+              ${productCards}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Cart Modal (simple) -->
+        <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-40 hidden justify-center items-center z-50">
+          <div class="bg-white rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-auto">
+            <div class="flex justify-between items-center border-b pb-2"><h3 class="text-xl font-bold">Your Cart</h3><button id="closeCartModal" class="text-gray-500"><i class="fas fa-times"></i></button></div>
+            <div id="cartItemsList" class="my-4">${cartItemsHtml}</div>
+            <div class="font-bold text-lg border-t pt-3">Total: ₹<span id="cartTotalValue">${cartTotal}</span></div>
+            <div class="mt-4"><label>Delivery Slot (Demo)</label><select id="deliverySlot" class="w-full border p-2 rounded"><option>Tomorrow 9am-12pm</option><option>Tomorrow 4pm-7pm</option></select></div>
+            <button id="checkoutBtn" class="w-full bg-green-700 text-white py-2 rounded-lg mt-4 font-semibold">Place Order (Consumer)</button>
+          </div>
+        </div>
+      `;
+    }
+    
+    function attachConsumerEvents() {
+      // filter product logic
+      const filterProducts = () => {
+        const category = document.getElementById('filterCategory')?.value || 'all';
+        const farming = document.getElementById('filterFarming')?.value || 'all';
+        let filtered = productsDB.filter(p => p.availability);
+        if (category !== 'all') filtered = filtered.filter(p => p.category === category);
+        if (farming !== 'all') filtered = filtered.filter(p => (farming === 'organic' ? p.organic : !p.organic));
+        const grid = document.getElementById('productGrid');
+        if (grid) {
+          grid.innerHTML = filtered.map(prod => {
+            const farmer = getFarmerById(prod.farmerId);
+            return `<div class="bg-white rounded-2xl shadow-sm border border-green-100 p-4 card-hover">
+              <div class="flex justify-between"><span class="text-4xl">${prod.image}</span><span class="${prod.organic ? 'organic-badge' : 'conventional-badge'} text-xs px-2 py-1 rounded-full">${prod.organic ? 'Organic' : 'Conventional'}</span></div>
+              <h3 class="font-bold text-lg mt-2">${prod.name}</h3>
+              <div class="text-sm text-gray-500"><i class="fas fa-tractor"></i> ${farmer?.name}</div>
+              <div class="mt-2 text-xl font-bold text-green-700">₹${prod.pricePerUnit}/${prod.unit}</div>
+              <button data-product='${JSON.stringify(prod)}' class="add-to-cart-btn w-full mt-3 bg-green-700 text-white py-1.5 rounded-lg text-sm">Add to Cart</button>
+            </div>`;
+          }).join('');
+          attachAddToCartEvents();
+        }
+      };
+      document.getElementById('applyFilterBtn')?.addEventListener('click', filterProducts);
+      // attach add to cart
+      attachAddToCartEvents();
+      // cart modal
+      const modal = document.getElementById('cartModal');
+      document.getElementById('viewCartBtn')?.addEventListener('click', () => { if(modal) modal.classList.remove('hidden'); updateCartModal(); });
+      document.getElementById('closeCartModal')?.addEventListener('click', () => modal?.classList.add('hidden'));
+      window.updateCartModal = () => {
+        let cartHtml = '', total=0;
+        cart.forEach((item,idx) => {
+          total += item.pricePerUnit * item.quantity;
+          cartHtml += `<div class="flex justify-between border-b pb-2 mb-2"><div>${item.name} x${item.quantity}</div><div>₹${item.pricePerUnit * item.quantity}</div><button data-cartidx="${idx}" class="remove-cart-item-modal text-red-500">remove</button></div>`;
+        });
+        if(cart.length===0) cartHtml = '<div class="text-gray-400">Cart empty</div>';
+        document.getElementById('cartItemsList').innerHTML = cartHtml;
+        document.getElementById('cartTotalValue').innerText = total;
+        document.getElementById('cartCount').innerText = cart.length;
+        document.querySelectorAll('.remove-cart-item-modal').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = btn.getAttribute('data-cartidx');
+            if(idx !== null) cart.splice(parseInt(idx),1);
+            updateCartModal();
+            renderView(); // full refresh consumer view to keep product grid sync
+          });
+        });
+      };
+      document.getElementById('checkoutBtn')?.addEventListener('click', () => {
+        if(cart.length === 0) { alert("Cart is empty"); return; }
+        // create orders for simplicity
+        cart.forEach(item => {
+          const newOrder = {
+            id: Date.now() + Math.random(),
+            consumerName: "Demo Consumer",
+            productId: item.id,
+            quantity: item.quantity,
+            status: "Confirmed",
+            orderDate: new Date().toISOString().split('T')[0],
+            farmerId: item.farmerId,
+            totalPrice: item.pricePerUnit * item.quantity
+          };
+          orders.push(newOrder);
+        });
+        cart = [];
+        alert("🎉 Order placed successfully! Farmer will confirm soon.");
+        if(modal) modal.classList.add('hidden');
+        renderView(); // refresh consumer view
+      });
+    }
+    
+    function attachAddToCartEvents() {
+      document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.removeEventListener('click', window.cartHandler);
+        const handler = () => {
+          const prodData = JSON.parse(btn.getAttribute('data-product'));
+          const existing = cart.find(c => c.id === prodData.id);
+          if(existing) existing.quantity += 1;
+          else cart.push({ ...prodData, quantity: 1, id: prodData.id, farmerId: prodData.farmerId });
+          alert(`🛒 Added ${prodData.name} to cart`);
+          const counter = document.getElementById('cartCount');
+          if(counter) counter.innerText = cart.length;
+          if(document.getElementById('cartModal')) updateCartModal();
+        };
+        btn.addEventListener('click', handler);
+        window.cartHandler = handler;
+      });
+    }
+    
+    // ---------- FARMER DASHBOARD (product listing, orders, sales summary) ----------
+    function renderFarmerDashboard(farmerId) {
+      const farmer = getFarmerById(farmerId);
+      const myProducts = productsDB.filter(p => p.farmerId === farmerId);
+      const myOrders = orders.filter(o => o.farmerId === farmerId);
+      const totalSales = myOrders.reduce((acc,o)=>acc+o.totalPrice,0);
+      return `
+        <div class="bg-white rounded-2xl shadow p-6">
+          <div class="flex items-center gap-3 border-b pb-4"><i class="fas fa-user-check text-3xl text-green-700"></i><div><h2 class="text-2xl font-bold">${farmer?.name}</h2><p class="text-gray-500">${farmer?.farmLocation} | ${farmer?.farmingMethod} farming | verified ✓</p></div></div>
+          <div class="grid md:grid-cols-3 gap-5 my-6">
+            <div class="bg-green-50 p-4 rounded-xl"><p class="text-gray-600">Total Products Listed</p><p class="text-3xl font-bold">${myProducts.length}</p></div>
+            <div class="bg-green-50 p-4 rounded-xl"><p class="text-gray-600">Orders Received</p><p class="text-3xl font-bold">${myOrders.length}</p></div>
+            <div class="bg-green-50 p-4 rounded-xl"><p class="text-gray-600">Total Sales (₹)</p><p class="text-3xl font-bold">₹${totalSales}</p></div>
+          </div>
+          <h3 class="font-bold text-xl mb-3">📦 My Products</h3>
+          <div class="grid sm:grid-cols-2 gap-3">${myProducts.map(p => `<div class="border p-3 rounded-lg flex justify-between"><div><i class="fas fa-apple-alt"></i> ${p.name} - ₹${p.pricePerUnit}/${p.unit}</div><span class="text-green-600">${p.availability ? 'In Stock' : 'Out'}</span></div>`).join('')}</div>
+          <h3 class="font-bold text-xl mt-6 mb-3">📋 Recent Orders</h3>
+          ${myOrders.length ? myOrders.map(o => `<div class="border-b py-2 flex justify-between"><span>Order #${o.id}</span><span>₹${o.totalPrice}</span><span class="text-sm bg-gray-100 px-2 rounded">${o.status}</span></div>`).join('') : '<p class="text-gray-400">No orders yet.</p>'}
+          <div class="mt-5 text-sm text-green-700"><i class="fas fa-chart-line"></i> Sales Summary: ₹${totalSales} total revenue</div>
+        </div>
+      `;
+    }
+    function attachFarmerEvents() { /* no interactive edit for demo simplicity but functional*/ }
+    
+    // ---------- ADMIN PANEL ----------
+    function renderAdminDashboard() {
+      const pendingFarmers = farmersDB.filter(f => !f.verified).length;
+      return `
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h2 class="text-2xl font-bold"><i class="fas fa-shield-alt"></i> Admin Overview</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+            <div class="bg-blue-50 p-4 rounded-xl"><p>Onboarded Farmers</p><p class="text-2xl font-bold">${platformStats.totalFarmers}</p></div>
+            <div class="bg-blue-50 p-4 rounded-xl"><p>Active Consumers</p><p class="text-2xl font-bold">${platformStats.activeConsumers}</p></div>
+            <div class="bg-blue-50 p-4 rounded-xl"><p>Order Fulfillment %</p><p class="text-2xl font-bold">${platformStats.orderFulfillmentRate}%</p></div>
+            <div class="bg-blue-50 p-4 rounded-xl"><p>Repeat Customer Rate</p><p class="text-2xl font-bold">${platformStats.repeatCustomerRate}%</p></div>
+          </div>
+          <div class="border-t pt-5">
+            <h3 class="font-semibold">📊 Platform Analytics</h3>
+            <ul class="list-disc ml-5 mt-2"><li>Avg Farmer Income Increase: +${platformStats.avgFarmerIncomeIncrease}%</li><li>Total Completed Orders: ${platformStats.totalOrdersCompleted}</li><li>Commissions (5% simulated): ₹${(platformStats.totalOrdersCompleted * 150).toFixed(0)}</li></ul>
+            <button id="approveFarmersBtn" class="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg">Approve Pending Farmers (demo: all verified)</button>
+          </div>
+        </div>
+      `;
+    }
+    function attachAdminEvents() {
+      document.getElementById('approveFarmersBtn')?.addEventListener('click', () => alert("✅ All farmers already verified. Platform ready."));
+    }
+    
+    // ---------- Role Switcher Logic ----------
+    function initRoleDropdown() {
+      const btn = document.getElementById('roleDropdownBtn');
+      const menu = document.getElementById('roleMenu');
+      if(btn && menu) {
+        btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); });
+        document.querySelectorAll('.role-option').forEach(opt => {
+          opt.addEventListener('click', (e) => {
+            e.preventDefault();
+            const role = opt.getAttribute('data-role');
+            if(role) currentRole = role;
+            document.getElementById('currentRoleLabel').innerText = role === 'consumer' ? 'Consumer Demo' : (role === 'farmer' ? 'Farmer Demo' : 'Admin Panel');
+            menu.classList.add('hidden');
+            renderView();
+          });
+        });
+        document.addEventListener('click', () => menu.classList.add('hidden'));
+      }
+    }
+    
+    // initial render
+    renderView();
+    initRoleDropdown();
+  </script>
+</body>
+</html>
